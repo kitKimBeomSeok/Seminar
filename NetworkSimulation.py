@@ -179,7 +179,7 @@ def changeStaVariables():
 
 
 def print_Performance():
-    print("***************패킷 단위 성능***************")
+    print("[패킷 단위 성능]")
     print("전송 시도 수 : ", Stats_PKT_TX_Trial)
     print("전송 성공 수 : ", Stats_PKT_Success)
 
@@ -190,8 +190,9 @@ def print_Performance():
         print("지연 : ", Stats_PKT_Delay / Stats_PKT_Success)
     else:
         print("전송 성공 수 : ", 0)
-    if (Stats_PKT_Success > 0):
+
     # Transmission time in us
+    if (Stats_PKT_Success > 0):
         print(">> 통신 속도 : ", (Stats_PKT_Success * PACKET_SIZE * 8) / (NUM_SIM * NUM_DTI * TWT_INTERVAL))  # 단위: Mbps
         print(">> 지연 : ", (Stats_PKT_Delay / Stats_PKT_Success) * TWT_INTERVAL)  # 단위: us
     else:
@@ -201,7 +202,7 @@ def print_Performance():
 
 
     # print(TWT_INTERVAL)
-    print("***************RU 단위 성능***************")
+    print("[RU 단위 성능]")
     print("전송 시도 수 : ", Stats_RU_TX_Trial)
     print("전송 성공 수 : ", Stats_RU_Success)
     print("전송 실패 수 : ", Stats_RU_Collision)
@@ -211,41 +212,42 @@ def print_Performance():
     print(">> 충돌율 : ", (Stats_RU_Collision / Stats_RU_TX_Trial) * 100)
 
 
-# def main():
-#     USER_MAX = 100
-#     for i in range(1, USER_MAX) :
-#         for k in range(0, NUM_SIM) : #시뮬레이션 횟수
-#             stationList.clear() # stationlist 초기화
-#             createSTA(i) #User의 수가 1일 때부터 100일 때까지 반복
-#             for j in range(0, NUM_DTI):
-#                 incTrial()
-#                 allocationRA_RU()
-#                 checkCollision()
-#                 addStats()
-#                 changeStaVariables()
-#         print_Performance()
-#
-# main()
-
 def main():
-    for i in range(0, NUM_SIM):
-        # 시뮬레이션 반복할 때마다 모든 노드 삭제 후 재 생성
-        stationList.clear()  # 모든 노드 삭제
-        createSTA(10)  # 노드 생성
-
-        for j in range(0, NUM_DTI):
-            # k = 0
-            # for sta in stationList:
-            #    print("ID: ", k, "BO: ", sta.bo)
-            #    k += 1
-
-            incTrial()
-            allocationRA_RU()
-            checkCollision()
-            addStats()
-            changeStaVariables()
-
-    print_Performance()
-
+    USER_MAX = 100
+    for i in range(1, USER_MAX) :
+        print("======"+str(i)+"번"+"======")
+        for k in range(0, NUM_SIM) : #시뮬레이션 횟수
+            stationList.clear() # stationlist 초기화
+            createSTA(i) #User의 수가 1일 때부터 100일 때까지 반복
+            for j in range(0, NUM_DTI):
+                incTrial()
+                allocationRA_RU()
+                checkCollision()
+                addStats()
+                changeStaVariables()
+        print_Performance()
 
 main()
+
+# def main():
+#     for i in range(0, NUM_SIM):
+#         # 시뮬레이션 반복할 때마다 모든 노드 삭제 후 재 생성
+#         stationList.clear()  # 모든 노드 삭제
+#         createSTA(10)  # 노드 생성
+#
+#         for j in range(0, NUM_DTI):
+#             # k = 0
+#             # for sta in stationList:
+#             #    print("ID: ", k, "BO: ", sta.bo)
+#             #    k += 1
+#
+#             incTrial()
+#             allocationRA_RU()
+#             checkCollision()
+#             addStats()
+#             changeStaVariables()
+#
+#     print_Performance()
+#
+#
+# main()
