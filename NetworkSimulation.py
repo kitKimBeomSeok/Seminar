@@ -179,20 +179,29 @@ def changeStaVariables():
 
 
 def print_Performance():
-    print("패킷 단위 성능")
+    print("***************패킷 단위 성능***************")
     print("전송 시도 수 : ", Stats_PKT_TX_Trial)
     print("전송 성공 수 : ", Stats_PKT_Success)
+
+
     print("전송 실패 수 : ", Stats_PKT_Collision)
     print("충돌율 : ", (Stats_PKT_Collision / Stats_PKT_TX_Trial) * 100)
-    print("지연 : ", Stats_PKT_Delay / Stats_PKT_Success)
-
+    if(Stats_PKT_Success > 0):
+        print("지연 : ", Stats_PKT_Delay / Stats_PKT_Success)
+    else:
+        print("전송 성공 수 : ", 0)
+    if (Stats_PKT_Success > 0):
     # Transmission time in us
-    print(">> 통신 속도 : ", (Stats_PKT_Success * PACKET_SIZE * 8) / (NUM_SIM * NUM_DTI * TWT_INTERVAL))  # 단위: Mbps
-    print(">> 지연 : ", (Stats_PKT_Delay / Stats_PKT_Success) * TWT_INTERVAL)  # 단위: us
+        print(">> 통신 속도 : ", (Stats_PKT_Success * PACKET_SIZE * 8) / (NUM_SIM * NUM_DTI * TWT_INTERVAL))  # 단위: Mbps
+        print(">> 지연 : ", (Stats_PKT_Delay / Stats_PKT_Success) * TWT_INTERVAL)  # 단위: us
+    else:
+        print(">> 통신 속도 : ", 0)  # 단위: Mbps
+        print(">> 지연 : ", 0)  # 단위: us
+
+
 
     # print(TWT_INTERVAL)
-
-    print("RU 단위 성능")
+    print("***************RU 단위 성능***************")
     print("전송 시도 수 : ", Stats_RU_TX_Trial)
     print("전송 성공 수 : ", Stats_RU_Success)
     print("전송 실패 수 : ", Stats_RU_Collision)
@@ -208,14 +217,13 @@ def print_Performance():
 #         for k in range(0, NUM_SIM) : #시뮬레이션 횟수
 #             stationList.clear() # stationlist 초기화
 #             createSTA(i) #User의 수가 1일 때부터 100일 때까지 반복
-#         for j in range(0, NUM_DTI):
-#             incTrial()
-#             allocationRA_RU()
-#             checkCollision()
-#             addStats()
-#             changeStaVariables()
-#
-#     print_Performance()
+#             for j in range(0, NUM_DTI):
+#                 incTrial()
+#                 allocationRA_RU()
+#                 checkCollision()
+#                 addStats()
+#                 changeStaVariables()
+#         print_Performance()
 #
 # main()
 
