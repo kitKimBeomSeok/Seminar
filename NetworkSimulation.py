@@ -20,7 +20,7 @@ DTI = 32  # Data Transmission Interval 시간, 단위: us => 의미하는 바는
 # 기본 설정 파라미터 값
 RU = 8  # STA에게 할당가능한 RU의 수
 MIN_OCW = 8  # 최소 백오프 카운터
-MAX_OCW = 64  # 최대 백오프 카운터
+MAX_OCW = 128  # 최대 백오프 카운터
 RETRY_BS = 10  # 백오프 스테이지 최댓값 = 충돌 실패 후 백오프타이머를 계속 시도할 때의 최대 횟수
 
 # Transmission time in us
@@ -120,10 +120,12 @@ def checkCollision():
         incRUTX()  # RU 전송 시도 수 증가
         cnt_coll = 0  # RU 내에서의 충돌 수
         if (coll_RU[i] == 1):  # 해당 인덱스의 값이 1인 경우에는 하나의 STA만 할당되었다.
+            setSuccess(i)
             incRUSuccess()
         elif (coll_RU[i] <= 0):  # 해당 인덱스의 값이 0보다 작은 경우 [= 0인 경우]에는 RU가 할당되지 않았음
             incRUIdle()
         else:
+            setCollision(i)
             incRUCollision()  # 위의 경우에 제외된 경우에는 충돌이 일어났음
 
 
@@ -221,7 +223,7 @@ def main():
     for i in range(0, NUM_SIM):
         # 시뮬레이션 반복할 때마다 모든 노드 삭제 후 재 생성
         stationList.clear()  # 모든 노드 삭제
-        createSTA(100)  # 노드 생성
+        createSTA(10)  # 노드 생성
 
         for j in range(0, NUM_DTI):
             # k = 0
