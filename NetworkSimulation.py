@@ -3,6 +3,10 @@
 # 응용 EBO의 경우 STA의 수만큼 RU와 관계를 로그 관계로 풀어서 우선 순위의 범위를 동적으로 적용
 #
 import random
+from turtle import color
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 NUM_SIM = 1  # 시뮬레이션 반복 수
 NUM_DTI = 100000  # 1번 시뮬레이션에서 수행될 Data Transmission Interval 수
@@ -77,14 +81,14 @@ def allocationRA_RU():
 def setSuccess(ru):
     for sta in stationList:
         if (sta.tx_status == True):  # 만약 전송 시도를 했다면
-            if (sta.ru != ru):  # sta에 ru 할당 적용 -> 들어간 ru가 sta 다른 RU 라면?
+            if (sta.ru == ru):
                 sta.suc_status = True  # 전송 성공
 
 
 def setCollision(ru):
     for sta in stationList:
         if (sta.tx_status == True):  # 만약 전송 시도를 했다면
-            if (sta.ru == ru):  # sta에 ru 할당 적용 -> 들어간 ru가 sta 같은 RU 라면?
+            if (sta.ru == ru):
                 sta.suc_status = False  # 전송 실패 [충돌]
 
 
@@ -179,43 +183,58 @@ def changeStaVariables():
 
 
 def print_Performance():
+    global PKS_coll_rate
+    global PKS_throughput
+    global PKS_delay
+    PKS_coll_rate = (Stats_PKT_Collision / Stats_PKT_TX_Trial) * 100
+    PKS_throughput = (Stats_PKT_Success * PACKET_SIZE * 8) / (NUM_SIM * NUM_DTI * TWT_INTERVAL)
+    PKS_delay = (Stats_PKT_Delay / Stats_PKT_Success) * TWT_INTERVAL
+
     print("[패킷 단위 성능]")
     print("전송 시도 수 : ", Stats_PKT_TX_Trial)
     print("전송 성공 수 : ", Stats_PKT_Success)
 
-
     print("전송 실패 수 : ", Stats_PKT_Collision)
-    print("충돌율 : ", (Stats_PKT_Collision / Stats_PKT_TX_Trial) * 100)
-    if(Stats_PKT_Success > 0):
-        print("지연 : ", Stats_PKT_Delay / Stats_PKT_Success)
-    else:
-        print("전송 성공 수 : ", 0)
-
-    # Transmission time in us
-    if (Stats_PKT_Success > 0):
-        print(">> 통신 속도 : ", (Stats_PKT_Success * PACKET_SIZE * 8) / (NUM_SIM * NUM_DTI * TWT_INTERVAL))  # 단위: Mbps
-        print(">> 지연 : ", (Stats_PKT_Delay / Stats_PKT_Success) * TWT_INTERVAL)  # 단위: us
-    else:
-        print(">> 통신 속도 : ", 0)  # 단위: Mbps
-        print(">> 지연 : ", 0)  # 단위: us
-
-
+    print("충돌율 : ", PKS_coll_rate)
+    print("지연 : ", Stats_PKT_Delay / Stats_PKT_Success)
+    print(">> 통신 속도 : ", PKS_throughput)  # 단위: Mbps
+    print(">> 지연 : ", PKS_delay)  # 단위: us
 
     # print(TWT_INTERVAL)
     print("[RU 단위 성능]")
+    global RU_idle_rate
+    global RU_Success_rate
+    global RU_Collision_rate
+    RU_idle_rate = (Stats_RU_Idle / Stats_RU_TX_Trial) * 100
+    RU_Success_rate = (Stats_RU_Success / Stats_RU_TX_Trial) * 100
+    RU_Collision_rate = (Stats_RU_Collision / Stats_RU_TX_Trial) * 100
     print("전송 시도 수 : ", Stats_RU_TX_Trial)
     print("전송 성공 수 : ", Stats_RU_Success)
     print("전송 실패 수 : ", Stats_RU_Collision)
     print("Idle 수 : ", Stats_RU_Idle)
-    print("Idle 비율 : ", (Stats_RU_Idle / Stats_RU_TX_Trial) * 100)
-    print("성공율 : ", (Stats_RU_Success / Stats_RU_TX_Trial) * 100)
-    print(">> 충돌율 : ", (Stats_RU_Collision / Stats_RU_TX_Trial) * 100)
+    print("Idle 비율 : ", RU_idle_rate)
+    print("성공율 : ", RU_Success_rate)
+    print(">> 충돌율 : ", RU_Collision_rate)
 
-
+def print_graph_PKS_Collision():
+    plt.plot(current_User, PKS_coll_rate, marker='o', color='blue')
+def print_graph_PKS_throughput():
+    plt.plot(current_User, PKS_throughput, marker='o', color='red')
+def print_graph_PKS_delay():
+    plt.plot(current_User, PKS_delay, marker='o', color='yellow')
+def print_graph_RU_Collision():
+    plt.plot(current_User, RU_Collision_rate, marker='o', color='blue')
+def print_graph_RU_Idle():
+    plt.plot(current_User, RU_idle_rate, marker='o', color='red')
+def print_graph_RU_Success():
+    plt.plot(current_User, RU_Success_rate, marker='o', color='yellow')
 def main():
-    USER_MAX = 100
+    global USER_MAX
+    global current_User
+    USER_MAX = 50
     for i in range(1, USER_MAX) :
         print("======"+str(i)+"번"+"======")
+        current_User = i
         for k in range(0, NUM_SIM) : #시뮬레이션 횟수
             stationList.clear() # stationlist 초기화
             createSTA(i) #User의 수가 1일 때부터 100일 때까지 반복
@@ -226,14 +245,37 @@ def main():
                 addStats()
                 changeStaVariables()
         print_Performance()
+        plt.xlabel("Number of STA")
+        # print_graph_PKS_Collision()
+        # plt.ylabel("PKS_Collision rate")
 
+        print_graph_PKS_throughput()
+        plt.ylabel("PKS_throughput rate")
+
+        # print_graph_PKS_delay()
+        # plt.ylabel("PKS_delay rate")
+
+        # print_graph_RU_Idle()
+        # plt.ylabel("RU_Idle rate")
+
+        # print_graph_RU_Success()
+        # plt.ylabel("RU_Success rate")
+
+        # print_graph_RU_Collision()
+        # plt.ylabel("RU_Collision rate")
+
+
+    plt.legend()
+    plt.show()
 main()
 
 # def main():
+#     global current_User
+#     current_User = 5
 #     for i in range(0, NUM_SIM):
 #         # 시뮬레이션 반복할 때마다 모든 노드 삭제 후 재 생성
 #         stationList.clear()  # 모든 노드 삭제
-#         createSTA(10)  # 노드 생성
+#         createSTA(current_User)  # 노드 생성
 #
 #         for j in range(0, NUM_DTI):
 #             # k = 0
@@ -248,6 +290,5 @@ main()
 #             changeStaVariables()
 #
 #     print_Performance()
-#
 #
 # main()
