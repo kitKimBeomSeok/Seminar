@@ -24,7 +24,7 @@ DTI = 32  # Data Transmission Interval 시간, 단위: us => 의미하는 바는
 # 기본 설정 파라미터 값
 RU = 8  # STA에게 할당가능한 RU의 수
 MIN_OCW = 8  # 최소 백오프 카운터
-MAX_OCW = 128  # 최대 백오프 카운터
+MAX_OCW = 64  # 최대 백오프 카운터
 RETRY_BS = 10  # 백오프 스테이지 최댓값 = 충돌 실패 후 백오프타이머를 계속 시도할 때의 최대 횟수
 
 # Transmission time in us
@@ -49,6 +49,17 @@ Stats_RU_Collision = 0  # 충돌 발생 RU 수
 # station 관리 목록
 stationList = []
 
+# PKS Result 관리 목록
+PKS_throughput_results = []
+PKS_coll_results = []
+PKS_dealy_results = []
+# RU Result 관리 목록
+RU_idle_results = []
+RU_Success_results = []
+RU_coll_results = []
+
+# graph x
+x_list = []
 
 class Station:
     def __init__(self):
@@ -153,6 +164,7 @@ def incTrial():
     for sta in stationList:
         sta.delay += 1  # 전송 시도 수 1 증가
 
+
 def changeStaVariables():
     for sta in stationList:
         if (sta.tx_status == True):  # 전송 시도
@@ -183,9 +195,6 @@ def changeStaVariables():
 
 
 def print_Performance():
-    global PKS_coll_rate
-    global PKS_throughput
-    global PKS_delay
     PKS_coll_rate = (Stats_PKT_Collision / Stats_PKT_TX_Trial) * 100
     PKS_throughput = (Stats_PKT_Success * PACKET_SIZE * 8) / (NUM_SIM * NUM_DTI * TWT_INTERVAL)
     PKS_delay = (Stats_PKT_Delay / Stats_PKT_Success) * TWT_INTERVAL
@@ -202,9 +211,6 @@ def print_Performance():
 
     # print(TWT_INTERVAL)
     print("[RU 단위 성능]")
-    global RU_idle_rate
-    global RU_Success_rate
-    global RU_Collision_rate
     RU_idle_rate = (Stats_RU_Idle / Stats_RU_TX_Trial) * 100
     RU_Success_rate = (Stats_RU_Success / Stats_RU_TX_Trial) * 100
     RU_Collision_rate = (Stats_RU_Collision / Stats_RU_TX_Trial) * 100
@@ -216,28 +222,102 @@ def print_Performance():
     print("성공율 : ", RU_Success_rate)
     print(">> 충돌율 : ", RU_Collision_rate)
 
-def print_graph_PKS_Collision():
-    plt.plot(current_User, PKS_coll_rate, marker='o', color='blue')
-def print_graph_PKS_throughput():
-    plt.plot(current_User, PKS_throughput, marker='o', color='red')
-def print_graph_PKS_delay():
-    plt.plot(current_User, PKS_delay, marker='o', color='yellow')
-def print_graph_RU_Collision():
-    plt.plot(current_User, RU_Collision_rate, marker='o', color='blue')
-def print_graph_RU_Idle():
-    plt.plot(current_User, RU_idle_rate, marker='o', color='red')
-def print_graph_RU_Success():
-    plt.plot(current_User, RU_Success_rate, marker='o', color='yellow')
+    PKS_coll_results.append(PKS_coll_rate)
+    PKS_throughput_results.append(PKS_throughput)
+    PKS_dealy_results.append(PKS_delay)
+
+    RU_idle_results.append(RU_idle_rate)
+    RU_Success_results.append(RU_Success_rate)
+    RU_coll_results.append(RU_Collision_rate)
+
+
+def print_graph():
+    for i in range(1, USER_MAX+1):
+        x_list.append(i) #x축 리스트 세팅
+
+    plt.figure(figsize=(20,10))
+
+    #PKS 속도
+    plt.subplot(231)
+    plt.plot(x_list, PKS_throughput_results, color='blue', marker='o')
+    plt.title('Packet Throughput')
+    plt.xlabel('Number or STA')
+    plt.ylabel('throughput')
+
+    #PKS 충돌율
+    plt.subplot(232)
+    plt.plot(x_list, PKS_coll_results, color='red', marker='o')
+    plt.title('Packet Collision Rate')
+    plt.xlabel('Number or STA')
+    plt.ylabel('collision rate')
+
+
+    #PKS 지연
+    plt.subplot(233)
+    plt.plot(x_list, PKS_dealy_results, color='yellow', marker='o')
+    plt.title('Packet delay')
+    plt.xlabel('Number or STA')
+    plt.ylabel('delay')
+
+    
+    #RU idle 비율
+    plt.subplot(234)
+    plt.plot(x_list, RU_idle_results, color='green', marker='o')
+    plt.title('RU idle rate')
+    plt.xlabel('Number or STA')
+    plt.ylabel('idle rate')
+
+
+    #RU 성공률
+    plt.subplot(235)
+    plt.plot(x_list, RU_Success_results, color='black', marker='o')
+    plt.title('RU Success rate')
+    plt.xlabel('Number or STA')
+    plt.ylabel('success rate')
+
+
+    #RU 충돌율
+    plt.subplot(236)
+    plt.plot(x_list, RU_coll_results, color='pink', marker='o')
+    plt.title('RU collision rate')
+    plt.xlabel('Number or STA')
+    plt.ylabel('collision rate')
+
+
+    plt.show()
+    plt.close()
+
+def resultClear():
+    global Stats_PKT_TX_Trial
+    global Stats_PKT_Success
+    global Stats_PKT_Collision
+    global Stats_PKT_Delay
+    global Stats_RU_TX_Trial
+    global Stats_RU_Idle
+    global Stats_RU_Success
+    global Stats_RU_Collision
+
+    Stats_PKT_TX_Trial = 0
+    Stats_PKT_Success = 0
+    Stats_PKT_Collision = 0
+    Stats_PKT_Delay = 0
+    Stats_RU_TX_Trial = 0
+    Stats_RU_Idle = 0
+    Stats_RU_Success = 0
+    Stats_RU_Collision = 0
+
+
 def main():
     global USER_MAX
     global current_User
-    USER_MAX = 50
-    for i in range(1, USER_MAX) :
-        print("======"+str(i)+"번"+"======")
+    USER_MAX = 100
+    for i in range(1, USER_MAX+1):
+        print("======" + str(i) + "번" + "======")
         current_User = i
-        for k in range(0, NUM_SIM) : #시뮬레이션 횟수
-            stationList.clear() # stationlist 초기화
-            createSTA(i) #User의 수가 1일 때부터 100일 때까지 반복
+        resultClear()  # 결과들 초기화하는 함수
+        for k in range(0, NUM_SIM):  # 시뮬레이션 횟수
+            stationList.clear()  # stationlist 초기화
+            createSTA(i)  # User의 수가 1일 때부터 100일 때까지 반복
             for j in range(0, NUM_DTI):
                 incTrial()
                 allocationRA_RU()
@@ -245,28 +325,8 @@ def main():
                 addStats()
                 changeStaVariables()
         print_Performance()
-        plt.xlabel("Number of STA")
-        # print_graph_PKS_Collision()
-        # plt.ylabel("PKS_Collision rate")
+    print_graph()
 
-        print_graph_PKS_throughput()
-        plt.ylabel("PKS_throughput rate")
-
-        # print_graph_PKS_delay()
-        # plt.ylabel("PKS_delay rate")
-
-        # print_graph_RU_Idle()
-        # plt.ylabel("RU_Idle rate")
-
-        # print_graph_RU_Success()
-        # plt.ylabel("RU_Success rate")
-
-        # print_graph_RU_Collision()
-        # plt.ylabel("RU_Collision rate")
-
-
-    plt.legend()
-    plt.show()
 main()
 
 # def main():
