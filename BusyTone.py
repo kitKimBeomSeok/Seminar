@@ -76,11 +76,7 @@ class Station:
         self.retry = 0
         self.data_size = 0  # 데이터 사이즈 (bytes)
         self.CC = 0
-        nas = np.random.randint(2 ** CC, 2 ** NAS - 1)
-        print(nas)
-        nas_binary = np.unpackbits(np.array([nas], dtype=np.uint8))
-        self.nas_binary = nas_binary[-NAS:]
-        print(self.nas_binary)
+        self.nas_binary = np.zeros(NAS)
 def createSTA(USER):
     for i in range(0, USER):
         sta = Station()
@@ -91,6 +87,10 @@ def allocationRA_RU():
     for sta in stationList:
         if (sta.bo <= 0):  # 백오프 타이머가 0보다 작아졌을 때
             sta.tx_status = True  # 전송 시도
+            nas = np.random.randint(2 ** sta.CC, 2 ** NAS - 1)
+            nas_binary = np.unpackbits(np.array([nas], dtype=np.uint8))
+            nas_binary = nas_binary[-4:]
+            sta.nas_binary = nas_binary
             sta.ru = random.randrange(0, NUM_RU)  # 랜덤으로 RU 할당
         else:
             sta.bo -= NUM_RU  # 백오프타이머 감소 [RU의 수만큼 점차 감소]
@@ -103,19 +103,23 @@ def checkBusyTone():
         # 같은 RU에 있는 STA끼리 비교하고 CC 비트를 더함
         for sta1 in stationList:
             if sta1.tx_status and sta1.ru == ru:
+                busy_tone_bits = sta1.nas_binary
                 for sta2 in stationList:
                     if sta2.tx_status and sta2.ru == ru and sta1 != sta2:
                         # sta1과 sta2의 비트 값을 비교해서 더 큰 값을 1로 설정, 작은 값을 0으로 설정 가장 큰 비트 조회
                         busy_tone_bits = np.maximum(busy_tone_bits, np.maximum(sta1.nas_binary, sta2.nas_binary))
+
+
 
         # 같은 RU에 있는 STA들에 대해서 추가적인 동작 수행
         for sta in stationList:
             if sta.tx_status and sta.ru == ru:
                 # busy_tone_bits 보다 작은 비트를 가진 STA는 False로 설정하고, 해당 STA의 cc를 +1
                 sta.status = np.any(sta.nas_binary < busy_tone_bits)
-                if not sta.status:
+                if sta.status:
                     if(sta.CC < NAS -1) :
                         sta.CC += 1
+
 
         # 같은 RU에 있는 STA들 중 busy_tone_bits와 같은 값을 가진 STA가 2개 이상이라면 해당 STA들도 False로 설정
         same_busy_tone_count = np.sum(
