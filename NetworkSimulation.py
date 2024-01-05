@@ -66,7 +66,7 @@ class Station:
         self.ru = 0  # 할당된 RU
         self.cw = MIN_OCW  # 초기 OCW
         self.bo = random.randrange(0, self.cw)  # Backoff Counter
-        self.tx_status = False  # True 전송 시도, False 전송 시도 X
+        self.tx_status = False  # True 전송 시도, False 전qq송 시도 X
         self.suc_status = False  # True 전송 성공, False 전송 실패 [충돌]
         self.delay = 0
         self.retry = 0
@@ -310,7 +310,7 @@ def resultClear():
 def main():
     global USER_MAX
     global current_User
-    USER_MAX = 100
+    USER_MAX = 50
     for i in range(1, USER_MAX+1):
         print("======" + str(i) + "번" + "======")
         current_User = i

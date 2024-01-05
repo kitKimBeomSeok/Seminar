@@ -24,6 +24,7 @@ NAS = 4 #조정 구간 슬롯의 개수
 
 
 # 기본 설정 파라미터 값
+CC = 0
 RU = 8  # STA에게 할당가능한 RU의 수
 MIN_OCW = 8  # 최소 백오프 카운터
 MAX_OCW = 64  # 최대 백오프 카운터
@@ -74,6 +75,7 @@ class Station:
         self.delay = 0
         self.retry = 0
         self.data_size = 0  # 데이터 사이즈 (bytes)
+        self.CC = 0
 def createSTA(USER):
     for i in range(0, USER):
         sta = Station()
@@ -86,7 +88,7 @@ def allocationRA_RU():
     for sta in stationList:
         if (sta.bo <= 0):  # 백오프 타이머가 0보다 작아졌을 때
             sta.tx_status = True  # 전송 시도
-            nas = np.random.randint(0, 2 ** NAS - 1)
+            nas = np.random.randint(2 ** sta.CC, 2 ** NAS - 1)
             sta.nas_binary = nas
             sta.ru = random.randrange(0, NUM_RU)  # 랜덤으로 RU 할당
         else:
@@ -118,7 +120,8 @@ def checkBusyTone():
             # print(sta.nas_binary)
             sta.tx_status = (sta.nas_binary == busy_tone_bits)
             # print(sta.suc_status)
-
+            if not sta.suc_status and sta.CC < NAS - 1:
+                sta.CC += 1
 
         # 같은 busy_tone_bits를 가진 STA들의 상태를 False로 설정
         same_busy_tone_stas = [sta for sta in stationList if
